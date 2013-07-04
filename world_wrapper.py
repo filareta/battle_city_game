@@ -44,6 +44,14 @@ class WorldWrapper(World):
             if bullet_sprite.bullet.ttl:
                 bullet_sprite.draw(screen)
         self.draw_walls(screen)
+        self.draw_phoenix(screen)
+
+
+    def draw_phoenix(self, screen):
+        phoenix = image.load("assets/phoenix.png")
+        x, y = to_pixels(self.phoenix[0][0])
+        position = Rect((x, y), phoenix.get_size())
+        screen.blit(phoenix, (position.x, position.y))
 
     def draw_walls(self, screen):
         wall_pic = image.load("assets/brick.png")
