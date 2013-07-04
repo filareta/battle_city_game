@@ -34,6 +34,7 @@ class World:
     enemies = []
     walls = []
     bounds = []
+    phoenix = []
     multiplayer = False
 
     def __init__(self, map_file, multiplayer):
@@ -53,13 +54,13 @@ class World:
             self.players['1'] = Player(coords, 1)
         elif item == 'G' and self.multiplayer:
             self.players['2'] = Player(coords, 2)
-        # elif item == 'F':
-        #     self.fenix = Fenix(coords)
+        elif item == 'F':
+            self.phoenix.append(coords)
         elif item == 'E':
             new_enemy = Enemy(coords)
             self.enemies.append(Enemy(coords))
             if (len(self.enemies) + 1) % 3 == 0:
-                new_enemy.target = "fenix"
+                new_enemy.target = "phoenix"
         elif item == 'B' or item == 'W':
             self.walls.append(Wall(coords))
         elif item == '#':
