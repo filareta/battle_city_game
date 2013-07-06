@@ -86,14 +86,11 @@ class EnemyWrapper(Sprite):
         if self.enemy.bullet:
             return BulletSprite(self.enemy.bullet)
 
-    def update(self, direction, alpha, world, index, cls, player):
+    def update(self, direction, world, index, cls):
         if self.enemy.direction.zero():
             self.enemy.direction = -direction
         cls.clear_content(self.enemy.coords[0], 'E')
         self.enemy.find_neighbours(self.enemy.coords[0], index, world)
-        if self.rect.colliderect(player.rect):
-            self.enemy.direction = -self.enemy.direction
-            player.player.check_health(5)
         self.enemy.move(world)
         cls.set_content('E', self.enemy.coords)
         cls.set_energy('E', self.enemy.coords)
