@@ -17,10 +17,14 @@ class Tile:
         self._set_content(content)
 
     def _set_content(self, content):
-       self.content = CONTENT[content]
+        self.content = CONTENT[content]
 
     def empty(self):
         return self.content == '0'
+
+    def passable(self):
+        return self.content != 'B' and self.content != 'W' and \
+            self.content != 'F'
 
     def no_energy(self):
         return self.content == '0' and self.energy == 0
@@ -62,7 +66,8 @@ class World:
             if (len(self.enemies) + 1) % 3 == 0:
                 new_enemy.target = "phoenix"
         elif item == 'B' or item == 'W':
-            self.walls.append(Wall(coords))
+            for position in coords:
+                self.walls.append(Wall(coords))
         elif item == '#':
             self.bounds = coords
 
@@ -72,7 +77,8 @@ class World:
             for l in range(4):
                 if item != '#':
                     self.world[j+l][i+k] = Tile(j+l, i+k, item)
-                elif j + l == 0 or j + l == SIZE_X or i + k == 0 or i + k == SIZE_Y:
+                elif j + l == 0 or j + l == SIZE_X or \
+                        i + k == 0 or i + k == SIZE_Y:
                     self.world[j+l][i+k] = Tile(j+l, i+k, item)
                 else:
                     self.world[j+l][i+k] = Tile(j+l, i+k, '0')
@@ -80,18 +86,20 @@ class World:
                     coords.append(Vec2D(j+l, i+k))
         if coords:
             if item == '#':
-                coords = [c for c in coords if c[0] == 0 or c[0] - 1 == SIZE_X or c[1] == 0 or c[1] - 1 == SIZE_Y]
+                coords = [c for c in coords if c[0] == 0 or
+                          c[0] - 1 == SIZE_X or c[1] == 0 or
+                          c[1] - 1 == SIZE_Y]
             self._create_object(item, coords)
             self.set_energy(item, coords)
 
     def set_energy(self, item, coords):
         for tile in coords:
             if item == 'Y' or item == 'G':
-                self.world[tile[0]][tile[1]].energy = 5
+                self.world[tile[0]][tile[1]].energy += 5
             elif item == 'F':
                 self.world[tile[0]][tile[1]].energy = 4
             elif item == 'E':
-                self.world[tile[0]][tile[1]].energy = -5
+                self.world[tile[0]][tile[1]].energy += -5
             elif item == 'B':
                 self.world[tile[0]][tile[1]].energy = -15
 
@@ -106,7 +114,8 @@ class World:
                 y = j + start[1]
                 if self.in_range(x, y):
                     self.world[x][y].content = '0'
-                if self.in_range(x, y) and self.world[x][y].empty() and item == 'E':
+                if self.in_range(x, y) and self.world[x][y].empty() and \
+                   item == 'E':
                     self.world[x][y].energy = 0
 
     def in_range(self, x, y):
@@ -141,32 +150,31 @@ class World:
                 cell = queue.popleft()
                 neighbours = self.neighbours(cell)
                 for n in neighbours:
-                    self.world[n[0]][n[1]].energy = self.world[cell[0]][cell[1]].energy + 1
+                    self.world[n[0]][n[1]].energy = \
+                        self.world[cell[0]][cell[1]].energy + 1
                     queue.append(n)
 
     def neighbours(self, cell):
         dirs = [Vec2D(1, 0), Vec2D(0, -1), Vec2D(-1, 0), Vec2D(0, 1)]
         cells = [direction + cell for direction in dirs]
-        return filter((lambda c: self.in_range(c[0], c[1]) and self.world[c[0]][c[1]].no_energy()), cells)
+        return filter((lambda c: self.in_range(c[0], c[1]) and
+                       self.world[c[0]][c[1]].no_energy()), cells)
+
+    def clear_energy(self, coords):
+        for x, y in coords:
+            self.world[x][y].energy = 0
+
+    def kill(self):
+        for i, enemy in enumerate(self.enemies):
+            if not enemy.alive:
+                self.clear_content(enemy.coords[0], 'E')
+        self.enemies = [enemy for enemy in self.enemies if enemy.alive]
+        if self.players['1'].dead:
+            self.clear_content(self.players['1'].coords[0], 'Y')
+            self.clear_energy(self.players['1'].coords)
+        if self.multiplayer and self.players['2'].dead:
+            self.clear_content(self.players['2'].coords[0], 'G')
+            self.clear_energy(self.players['2'].coords)
 
     def __getitem__(self, index):
         return self.world[index]
-
-
-# w = World("assets/simple_map.txt", False)
-# w.brick_energy()
-# w.set_dynamics_energy()
-# w.set_bounds_energy()
-# for wall in w.walls:
-#     print(wall.coords)
-# print(w)
-# print(w.players['1'].coords)
-# print(w.enemies)
-# for i in range(100):
-#     for j in range(72):
-#         print(w[i][j])
-#print(w.player.coords[0])
-#w.load_world()
-# print(w[2][4])
-# t = w[63][8]
-# print(t.position)
