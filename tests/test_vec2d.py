@@ -1,6 +1,5 @@
 import unittest
 
-import path_script
 from vector import Vec2D, to_pixels, to_coords
 
 
@@ -51,7 +50,8 @@ class TestVec2D(unittest.TestCase):
         self.assertFalse(Vec2D(-2, 0).same_direction(Vec2D(5, 0)))
         self.assertFalse(Vec2D(2, 0).same_direction(Vec2D(0, 3)))
 
-class TestConverFunctions(unittest.TestCase):
+
+class TestConvertFunctions(unittest.TestCase):
     def test_to_pixels(self):
         self.assertEqual(to_pixels(Vec2D(2, 3)), Vec2D(20, 30))
 
