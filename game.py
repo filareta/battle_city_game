@@ -1,5 +1,5 @@
 import pygame
-from pygame import image, rect, display, key, K_UP, K_DOWN, K_SPACE
+from pygame import image, rect, display, key, K_UP, K_DOWN, K_SPACE, K_LSHIFT
 
 from settings import SCREEN_SIZE, MAPS
 from player import Player
@@ -11,7 +11,8 @@ from world_wrapper import WorldWrapper
 class Game:
     running = True
     start = False
-    level = 1
+    game_over = False
+    restart = False
     multiplayer = False
     world = None
 
@@ -19,31 +20,59 @@ class Game:
         pygame.init()
         self.screen = pygame.display.set_mode(SCREEN_SIZE)
         self.clock = pygame.time.Clock()
-        self._init_screen()
-
-
-    def _init_screen(self):
+        self.buttons = (K_DOWN, K_UP, K_SPACE, K_LSHIFT)
         self.background = image.load("assets/start.png")
         self.pointer = image.load("assets/pointer.png")
+        self.over_screen = image.load("assets/game_over.png")
         self.back = rect.Rect((0, 0), self.background.get_size())
-        self.point = rect.Rect((170, 310), self.pointer.get_size())
+        self.over = rect.Rect((0, 0), self.over_screen.get_size())
+        self.point = rect.Rect((250, 370), self.pointer.get_size())
+        self._init_screen()
+
+    def _init_screen(self):
+        self.level = 1
+        self.point.left = 250
+        self.point.top = 370
         self.screen.blit(self.background, (self.back.x, self.back.y))
         self.screen.blit(self.pointer, (self.point.x, self.point.y))
 
+    def _game_over(self):
+        self.game_over = True
+        self.point.top = 480
+        self.point.left = 310
+        self.screen.blit(self.over_screen, (self.over.x, self.over.y))
+        self.screen.blit(self.pointer, (self.point.x, self.point.y))
 
     def init_game(self):
-        init = (K_DOWN, K_UP, K_SPACE)
         move = key.get_pressed()
-        if move[init[0]] and self.point.top == 310:
-            self.point.top += 40
+        if move[self.buttons[0]] and self.point.top == 370:
+            self.point.top += 60
             self.multiplayer = True
-        elif move[init[1]] and self.point.top == 350:
-            self.point.top -= 40
+        elif move[self.buttons[1]] and self.point.top == 430:
+            self.point.top -= 60
             self.multiplayer = False
-        if move[init[2]]:
+        if move[self.buttons[2]]:
             self.start = True
             self.world = WorldWrapper(MAPS[self.level], self.multiplayer)
         self.screen.blit(self.background, (self.back.x, self.back.y))
+        self.screen.blit(self.pointer, (self.point.x, self.point.y))
+
+    def restart_game(self):
+        move = key.get_pressed()
+        if move[self.buttons[0]] and self.point.top == 480:
+            self.point.top += 60
+        elif move[self.buttons[1]] and self.point.top == 540:
+            self.point.top -= 60
+            self.restart = True
+        elif move[self.buttons[3]]:
+            if self.restart:
+                self.start = False
+                self.game_over = False
+                self._init_screen()
+                self.game_loop(30)
+            else:
+                return
+        self.screen.blit(self.over_screen, (self.over.x, self.over.y))
         self.screen.blit(self.pointer, (self.point.x, self.point.y))
 
     def game_loop(self, fps):
@@ -51,13 +80,19 @@ class Game:
             dt = self.clock.tick(fps)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                   return
-            if self.start:
-                self.world.update(dt / 100)
-                self.screen.fill((0, 0, 0))
-                self.world.draw(self.screen)
+                    return
+            if not self.game_over:
+                if self.start:
+                    self.world.update(dt / 100)
+                    self.screen.fill((0, 0, 0))
+                    self.world.draw(self.screen)
+                    if self.world.game_over:
+                        self._game_over()
+                else:
+                    self.init_game()
             else:
-                self.init_game()
+                self.restart_game()
             pygame.display.flip()
+
 
 Game().game_loop(30)
