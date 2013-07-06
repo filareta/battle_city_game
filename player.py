@@ -58,4 +58,3 @@ class Player(Sprite):
         self.health -= decrease
         if self.health <= 0:
             self.dead = True
-
