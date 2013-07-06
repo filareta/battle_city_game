@@ -9,9 +9,9 @@ class Wall:
     def __eq__(self, other):
         return self.coords == other.coords
 
+
 class Bullet:
     ttl = 100
-    #direction = Vec2D(0, -1)
 
     def __init__(self, coords, direction, angle, owner):
         self.pos = coords
@@ -21,6 +21,7 @@ class Bullet:
 
     def flight(self, world, alpha):
         move = self.pos + self.direction
-        if move[0] >= 0 and move[0] < SIZE_X and move[1] >= 0 and move[1] < SIZE_Y:
+        if move[0] >= 0 and move[0] < SIZE_X and \
+           move[1] >= 0 and move[1] < SIZE_Y:
             self.pos = move
             self.ttl -= 10
