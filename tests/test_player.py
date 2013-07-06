@@ -1,6 +1,5 @@
 import unittest
 
-import path_script
 from world import World
 from player import Player
 from vector import Vec2D
@@ -9,8 +8,9 @@ from static_objects import Bullet
 
 class TestPlayer(unittest.TestCase):
     def setUp(self):
-        self.world = World("../assets/simple_map.txt", False)
-        self.player = Player([Vec2D(40, 64), Vec2D(41, 64), Vec2D(40, 65), Vec2D(41, 65)], 1)
+        self.world = World("./assets/simple_map.txt", False)
+        self.player = Player([Vec2D(40, 64), Vec2D(41, 64),
+                              Vec2D(40, 65), Vec2D(41, 65)], 1)
 
     def tearDown(self):
         del self.world
@@ -22,8 +22,10 @@ class TestPlayer(unittest.TestCase):
         self.assertTrue(self.player.valid(Vec2D(89, 65), self.world.world))
 
     def test_valid_direction(self):
-        self.assertTrue(self.player.valid_direction(Vec2D(8, 0), self.world.world))
-        self.assertFalse(self.player.valid_direction(Vec2D(-41, 0), self.world.world))
+        result1 = self.player.valid_direction(Vec2D(4, 0), self.world.world)
+        result2 = self.player.valid_direction(Vec2D(-8, 0), self.world.world)
+        self.assertFalse(result1)
+        self.assertTrue(result2)
 
     def test_valid_move(self):
         answer = [Vec2D(36, 64), Vec2D(37, 64), Vec2D(36, 65), Vec2D(37, 65)]
