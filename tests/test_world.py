@@ -1,14 +1,14 @@
 import unittest
 
-import path_script
 from world import Tile, World
 from player import Player
 from static_objects import Wall
 from vector import Vec2D
 
+
 class TestWorld(unittest.TestCase):
     def setUp(self):
-        self.world = World("../assets/simple_map.txt", False)
+        self.world = World("./assets/simple_map.txt", False)
 
     def tearDown(self):
         del self.world
@@ -108,11 +108,22 @@ class TestWorld(unittest.TestCase):
         self.assertEqual(self.world.world[10][64].energy, 7)
         self.assertEqual(self.world.world[11][63].energy, 7)
 
+    def test_kill_player(self):
+        self.world.players['1'].dead = True
+        self.world.kill()
+        for x, y in self.world.players['1'].coords:
+            self.assertEqual(self.world[x][y].content, '0')
+            self.assertEqual(self.world[x][y].energy, 0)
 
-
-
-
-
+    def test_kill_enemy(self):
+        self.world.enemies[2].alive = False
+        coords = self.world.enemies[2].coords
+        self.world.kill()
+        for x, y in coords:
+            self.assertEqual(self.world[x][y].content, '0')
+            self.assertEqual(self.world[x][y].energy, 0)
+        for enemy in self.world.enemies:
+            self.assertTrue(enemy.alive)
 
 
 if __name__ == '__main__':
