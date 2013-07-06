@@ -1,14 +1,9 @@
-from pygame import image, display, key, transform
-from pygame import K_UP, K_DOWN, K_LEFT, K_RIGHT, K_w, K_s, K_a, K_d
-from pygame.sprite import Sprite
-from pygame.rect import Rect
-
 from vector import Vec2D
 from settings import TILE_SIZE, SIZE_X, SIZE_Y
 from static_objects import Bullet
 
 
-class Player(Sprite):
+class Player:
     coords = []
     direction = Vec2D(0, 0)
     angle = 0

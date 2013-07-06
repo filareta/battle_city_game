@@ -1,7 +1,3 @@
-from pygame import image, display
-from pygame.sprite import Sprite
-from pygame.rect import Rect
-
 from collections import defaultdict, deque
 from vector import Vec2D
 from static_objects import Bullet

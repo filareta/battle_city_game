@@ -59,7 +59,6 @@ class Game:
         self.screen.blit(self.pointer, (self.point.x, self.point.y))
 
     def restart_game(self):
-        print("in restart")
         move = key.get_pressed()
         if move[self.buttons[0]] and self.point.top == 480:
             self.point.top += 60

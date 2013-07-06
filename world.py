@@ -1,4 +1,3 @@
-import pygame
 from collections import deque
 
 from settings import SIZE_X, SIZE_Y, TILE_SIZE, MAPS, CONTENT
