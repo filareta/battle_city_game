@@ -10,8 +10,9 @@ from settings import TILE_SIZE
 class WorldWrapper(World):
     player_sprites = {'1': None, '2': None}
     enemy_sprites = []
-    wall_pics = []
+    wall_rects = []
     bullets = []
+    game_over = False
 
     def __init__(self, world_map, multiplayer):
         World.__init__(self, world_map, multiplayer)
@@ -25,14 +26,15 @@ class WorldWrapper(World):
         wall_pic = image.load("assets/brick.png")
         for wall in self.walls:
             x, y = to_pixels(wall.coords[0])
-            self.wall_pics.append(Rect((x, y), wall_pic.get_size()))
+            self.wall_rects.append(Rect((x, y), wall_pic.get_size()))
 
     def _create_sprites(self):
         for key, player in self.players.items():
             if player:
                 self.player_sprites[key] = PlayerWrapper(player)
         for enemy in self.enemies:
-            self.enemy_sprites.append(EnemyWrapper(enemy, len(self.enemy_sprites) % 2))
+            new_enemy = EnemyWrapper(enemy, len(self.enemy_sprites) % 2)
+            self.enemy_sprites.append(new_enemy)
 
     def draw(self, screen):
         for key, player in self.player_sprites.items():
@@ -46,7 +48,6 @@ class WorldWrapper(World):
         self.draw_walls(screen)
         self.draw_phoenix(screen)
 
-
     def draw_phoenix(self, screen):
         phoenix = image.load("assets/phoenix.png")
         x, y = to_pixels(self.phoenix[0][0])
@@ -55,7 +56,7 @@ class WorldWrapper(World):
 
     def draw_walls(self, screen):
         wall_pic = image.load("assets/brick.png")
-        for wall in self.wall_pics:
+        for wall in self.wall_rects:
             screen.blit(wall_pic, (wall.x, wall.y))
 
     def convert(self, function):
@@ -65,11 +66,19 @@ class WorldWrapper(World):
         for enemy in self.enemy_sprites:
             enemy.convert(function)
 
+    def is_over(self):
+        if self.multiplayer:
+            if self.player_sprites['1'].player.dead and \
+                    self.player_sprites['2'].player.dead:
+                self.game_over = True
+        elif self.player_sprites['1'].player.dead:
+            self.game_over = True
+
     def update(self, delta):
         self.convert(to_coords)
         for key, sprite in self.player_sprites.items():
             if sprite:
-                sprite.update(delta, self, self.wall_pics)
+                sprite.update(delta, self, self.wall_rects)
                 if sprite.bullet:
                     self.bullets.append(sprite.bullet)
         for index, enemy in enumerate(self.enemy_sprites):
@@ -77,34 +86,36 @@ class WorldWrapper(World):
                 dir1 = self.player_sprites['1'].player.direction
                 if not dir1.zero():
                     enemy.update(dir1, delta, self.world, index, self)
-                else:
+                elif self.multiplayer:
                     dir2 = self.player_sprites['2'].player.direction
                     enemy.update(dir2, delta, self.world, index, self)
             else:
-                enemy.update(self.player_sprites['1'].player.direction, delta, self.world, index, self)
+                enemy.update(self.player_sprites['1'].player.direction,
+                             delta, self.world, index, self)
             bullet = enemy.bullet()
             if bullet:
                 self.bullets.append(bullet)
         for key, sprite in self.player_sprites.items():
             for enemy_sprite in self.enemy_sprites:
                 if sprite and collide_rect(enemy_sprite, sprite):
-                    sprite.player.check_health(10)
+                    sprite.player.check_health(5)
         for key, sprite in self.player_sprites.items():
             for bullet_sprite in self.bullets:
                 if sprite and bullet_sprite.bullet.owner == "enemy" \
                    and collide_rect(bullet_sprite, sprite):
-                    sprite.player.check_health(20)
+                    sprite.player.check_health(10)
         for enemy_sprite in self.enemy_sprites:
             for sprite in self.bullets:
                 if sprite.bullet.owner == "player" and \
                    collide_rect(sprite, enemy_sprite):
                     enemy_sprite.enemy.check_health()
-        self.convert(to_pixels)
         for bullet_sprite in self.bullets:
             if bullet_sprite.bullet.ttl:
                 bullet_sprite.update(self.world, delta)
             else:
                 bullet_sprite.active = False
+        self.kill()
         self.bullets = [bullet for bullet in self.bullets if bullet.active]
-        self.enemy_sprites = \
         [sprite for sprite in self.enemy_sprites if sprite.enemy.alive]
+        self.is_over()
+        self.convert(to_pixels)
