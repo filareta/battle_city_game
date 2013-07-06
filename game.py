@@ -71,7 +71,7 @@ class Game:
                 self._init_screen()
                 self.game_loop(30)
             else:
-                return
+                self.running = False
         self.screen.blit(self.over_screen, (self.over.x, self.over.y))
         self.screen.blit(self.pointer, (self.point.x, self.point.y))
 
@@ -80,7 +80,7 @@ class Game:
             dt = self.clock.tick(fps)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    return
+                   return
             if not self.game_over:
                 if self.start:
                     self.world.update(dt / 100)
