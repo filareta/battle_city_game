@@ -40,10 +40,10 @@ class TestEnemy(unittest.TestCase):
     def test_detect_player_direction(self):
         self.world.set_content('Y', [Vec2D(14, 34), Vec2D(15, 34)])
         s = Vec2D(13, 34)
-        answer = self.enemy.check_direction(s, Vec2D(1, 0), self.world.world)
+        answer = self.enemy.check_for_player(s, Vec2D(1, 0), self.world.world)
         self.assertTrue(answer)
 
-    def test_avoid_other_enemy_directio(self):
+    def test_avoid_other_enemy_direction(self):
         self.world.set_content('E', [Vec2D(14, 34), Vec2D(15, 34)])
         s = Vec2D(13, 34)
         answer = self.enemy.check_direction(s, Vec2D(1, 0), self.world.world)
@@ -53,14 +53,7 @@ class TestEnemy(unittest.TestCase):
         self.world.set_content('Y', [Vec2D(41, 64), Vec2D(42, 64),
                                      Vec2D(41, 65), Vec2D(42, 65)])
         answer = self.enemy.detect_collision(Vec2D(1, 0),
-                                             self.world.world, all)
-        self.assertTrue(answer)
-
-    def test_in_partial_collision_with_player(self):
-        self.world.set_content('Y', [Vec2D(37, 64), Vec2D(38, 64),
-                                     Vec2D(37, 65), Vec2D(38, 65)])
-        answer = self.enemy.detect_collision(Vec2D(-2, 0),
-                                             self.world.world, any)
+                                             self.world.world)
         self.assertTrue(answer)
 
     def check_next_position_cell_by_cell(self):
@@ -78,7 +71,8 @@ class TestEnemy(unittest.TestCase):
         self.world.spread(9, coords[-1])
         self.world.spread(9, coords[-4])
         self.world.clear_content(self.enemy.coords[0], 'E')
-        self.enemy.find_neighbours(self.enemy.coords[0], 2, self.world)
+        self.enemy.find_neighbours(self.enemy.coords[0], 2, self.world,
+                                    Vec2D(32, 34))
         self.assertEqual(self.enemy.direction, Vec2D(1, 0))
 
     def test_make_move(self):
