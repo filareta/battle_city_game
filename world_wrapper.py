@@ -86,7 +86,7 @@ class WorldWrapper(World):
             if self.player_sprites['2']:
                 dir1 = self.player_sprites['1'].player.direction
                 if not dir1.zero():
-                    enemy.update(dir1, self.player_sprites['1'].player.coords[0],
+                    enemy.update(dir1,
                                  self.world, index, self,
                                  self.player_sprites['1'].player.coords[0])
                 elif self.multiplayer:
@@ -113,8 +113,8 @@ class WorldWrapper(World):
                     sprite.player.check_health(10)
         for enemy_sprite in self.enemy_sprites:
             for sprite in self.bullets:
-                if sprite.bullet.owner == "player":
-                   if rect_collision(enemy_sprite.rect, sprite.rect):
+                if sprite.bullet.owner == "player" \
+                   and rect_collision(enemy_sprite.rect, sprite.rect):
                     enemy_sprite.enemy.check_health()
         for bullet_sprite in self.bullets:
             if bullet_sprite.bullet.ttl:
