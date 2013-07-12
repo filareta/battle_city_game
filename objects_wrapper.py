@@ -16,11 +16,11 @@ class PlayerWrapper(Sprite):
         self.player = player
         self.convert(to_pixels)
         self.image = image.load("assets/player{}.png".format(player.turn))
-        x, y = player.coords[0][0], player.coords[0][1]
+        x, y = player.coords[0], player.coords[1]
         self.rect = Rect((x, y), self.image.get_size())
 
     def convert(self, function):
-        self.player.coords = [function(tile) for tile in self.player.coords]
+        self.player.coords = function(self.player.coords)
 
     def shoot(self):
         self.bullet = BulletSprite(self.player.create_bullet())
@@ -34,7 +34,7 @@ class PlayerWrapper(Sprite):
             else:
                 control = (K_w, K_s, K_a, K_d, K_TAB)
                 sign = 'G'
-            world.clear_content(self.player.coords[0], sign)
+            world.clear_content(self.player.coords, sign)
             direction = Vec2D(0, 0)
             if choice[control[0]]:
                 direction = Vec2D(0, -1)
@@ -65,7 +65,7 @@ class PlayerWrapper(Sprite):
         if not self.player.dead:
             origin = self.image.convert_alpha()
             r = transform.rotate(origin, self.player.angle)
-            x, y = self.player.coords[0][0], self.player.coords[0][1]
+            x, y = self.player.coords[0], self.player.coords[1]
             screen.blit(r, (x, y))
 
 

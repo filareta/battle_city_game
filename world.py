@@ -112,8 +112,6 @@ class World:
                 cell = queue.popleft()
                 neighbours = self.neighbours(cell)
                 for n in neighbours:
-                    self.world[n[0]][n[1]].energy = \
-                        self.world[cell[0]][cell[1]].energy + 1
                     queue.append(n)
 
     def neighbours(self, cell):

@@ -18,15 +18,12 @@ class WorldWrapper(World):
     def __init__(self, world_map, multiplayer):
         World.__init__(self, world_map, multiplayer)
         self._create_sprites()
-        self.brick_energy()
-        self.set_bounds_energy()
-        self.set_dynamics_energy()
         self._set_walls()
 
     def _set_walls(self):
         wall_pic = image.load("assets/brick.png")
         for wall in self.walls:
-            x, y = to_pixels(wall.coords[0])
+            x, y = to_pixels(wall.coords)
             self.wall_rects.append(Rect((x, y), wall_pic.get_size()))
 
     def _create_sprites(self):
@@ -51,7 +48,7 @@ class WorldWrapper(World):
 
     def draw_phoenix(self, screen):
         phoenix = image.load("assets/phoenix.png")
-        x, y = to_pixels(self.phoenix[0][0])
+        x, y = to_pixels(self.phoenix[0])
         position = Rect((x, y), phoenix.get_size())
         screen.blit(phoenix, (position.x, position.y))
 
@@ -78,51 +75,56 @@ class WorldWrapper(World):
     def update(self, delta):
         self.convert(to_coords)
         for key, sprite in self.player_sprites.items():
-            if sprite:
-                sprite.update(delta, self, self.wall_rects)
-                if sprite.bullet:
-                    self.bullets.append(sprite.bullet)
-        for index, enemy in enumerate(self.enemy_sprites):
-            if self.player_sprites['2']:
-                dir1 = self.player_sprites['1'].player.direction
-                if not dir1.zero():
-                    enemy.update(dir1,
-                                 self.world, index, self,
-                                 self.player_sprites['1'].player.coords[0])
-                elif self.multiplayer:
-                    dir2 = self.player_sprites['2'].player.direction
-                    enemy.update(dir2, self.world, index, self,
-                                 self.player_sprites['2'].player.coords[0])
-            else:
-                enemy.update(self.player_sprites['1'].player.direction,
-                             self.world, index, self,
-                             self.player_sprites['1'].player.coords[0])
-            bullet = enemy.bullet()
-            if bullet:
-                self.bullets.append(bullet)
-        for key, sprite in self.player_sprites.items():
-            for enemy_sprite in self.enemy_sprites:
-                if sprite:
-                    side = rect_collision(enemy_sprite.rect, sprite.rect)
-                    if side:
-                        reactor(side, enemy_sprite.rect)
-        for key, sprite in self.player_sprites.items():
-            for bullet_sprite in self.bullets:
-                if sprite and bullet_sprite.bullet.owner == "enemy" \
-                   and rect_collision(bullet_sprite.rect, sprite.rect):
-                    sprite.player.check_health(10)
-        for enemy_sprite in self.enemy_sprites:
-            for sprite in self.bullets:
-                if sprite.bullet.owner == "player" \
-                   and rect_collision(enemy_sprite.rect, sprite.rect):
-                    enemy_sprite.enemy.check_health()
-        for bullet_sprite in self.bullets:
-            if bullet_sprite.bullet.ttl:
-                bullet_sprite.update(self.world, delta)
-            else:
-                bullet_sprite.active = False
-        self.kill()
-        self.bullets = [bullet for bullet in self.bullets if bullet.active]
-        [sprite for sprite in self.enemy_sprites if sprite.enemy.alive]
-        self.is_over()
-        self.convert(to_pixels)
+            pass
+            # if sprite:
+                # sprite.update(delta, self, self.wall_rects)
+        #         if sprite.bullet:
+        #             self.bullets.append(sprite.bullet)
+
+        # for index, enemy in enumerate(self.enemy_sprites):
+        #     if self.player_sprites['2']:
+        #         dir1 = self.player_sprites['1'].player.direction
+        #         if not dir1.zero():
+        #             enemy.update(dir1,
+        #                          self.world, index, self,
+        #                          self.player_sprites['1'].player.coords[0])
+        #         elif self.multiplayer:
+        #             dir2 = self.player_sprites['2'].player.direction
+        #             enemy.update(dir2, self.world, index, self,
+        #                          self.player_sprites['2'].player.coords[0])
+        #     else:
+        #         enemy.update(self.player_sprites['1'].player.direction,
+        #                      self.world, index, self,
+        #                      self.player_sprites['1'].player.coords[0])
+        #     bullet = enemy.bullet()
+        #     if bullet:
+        #         self.bullets.append(bullet)
+
+        # for key, sprite in self.player_sprites.items():
+        #     for enemy_sprite in self.enemy_sprites:
+        #         if sprite:
+        #             side = rect_collision(enemy_sprite.rect, sprite.rect)
+        #             if side:
+        #                 reactor(side, enemy_sprite.rect)
+
+        # for key, sprite in self.player_sprites.items():
+        #     for bullet_sprite in self.bullets:
+        #         if sprite and bullet_sprite.bullet.owner == "enemy" and rect_collision(bullet_sprite.rect, sprite.rect):
+        #             sprite.player.check_health(10)
+
+        # for enemy_sprite in self.enemy_sprites:
+        #     for sprite in self.bullets:
+        #         if sprite.bullet.owner == "player" and rect_collision(enemy_sprite.rect, sprite.rect):
+        #             enemy_sprite.enemy.check_health()
+
+        # for bullet_sprite in self.bullets:
+        #     if bullet_sprite.bullet.ttl:
+        #         bullet_sprite.update(self.world, delta)
+        #     else:
+        #         bullet_sprite.active = False
+
+        # self.kill()
+        # self.bullets = [bullet for bullet in self.bullets if bullet.active]
+        # [sprite for sprite in self.enemy_sprites if sprite.enemy.alive]
+        # self.is_over()
+        # self.convert(to_pixels)
