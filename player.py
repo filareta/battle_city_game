@@ -13,18 +13,9 @@ class Player:
         self.coords = coords
         self.turn = turn
 
-    def valid_direction(self, direction, world):
-        return True
-        # return self.valid(self.coords[0] + direction, world) and self.valid(self.coords[-1] + direction, world)
-
-    def valid(self, cell, world):
-        return True
-        # return cell[0] >= 0 and cell[0] < SIZE_X and cell[1] >= 0 and cell[1] < SIZE_Y and world[cell[0]][cell[1]].passable()
-
     def move(self, direction, world):
         if not self.dead:
-            if self.valid_direction(direction, world):
-                self.coords = self.coords + direction
+            self.coords = self.coords + direction
 
     def create_bullet(self):
         if self.angle == 0:

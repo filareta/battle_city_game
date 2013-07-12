@@ -5,7 +5,10 @@ from world import World
 from collider import rect_collision, reactor
 from vector import to_coords, to_pixels
 from objects_wrapper import PlayerWrapper, EnemyWrapper
-from settings import TILE_SIZE
+from settings import TILE_SIZE, SIZE_X, SIZE_Y
+from vector import Vec2D
+
+import math
 
 
 class WorldWrapper(World):
@@ -46,6 +49,61 @@ class WorldWrapper(World):
         self.draw_walls(screen)
         self.draw_phoenix(screen)
 
+    def get_all_block_coords(self, pixels_x, pixels_y):
+        blocks = []
+
+        blocks.append(self.get_block_coords(pixels_x, pixels_y))
+        if pixels_x % TILE_SIZE != 0:
+            blocks.append(self.get_block_coords(pixels_x + TILE_SIZE, pixels_y))
+
+        if pixels_y % TILE_SIZE != 0:
+            blocks.append(self.get_block_coords(pixels_x, pixels_y + TILE_SIZE))
+
+        if pixels_x % TILE_SIZE != 0 and pixels_y % TILE_SIZE != 0:
+            blocks.append(self.get_block_coords(pixels_x + TILE_SIZE, pixels_y + TILE_SIZE))
+
+        return blocks
+
+    def get_block_coords(self, pixels_x, pixels_y):
+        return Vec2D(math.floor(math.floor(pixels_x) / TILE_SIZE), math.floor(math.floor(pixels_y) / TILE_SIZE))
+
+    def valid_position(self, position):
+        blocks = self.get_all_block_coords(position.x, position.y)
+
+        for tile in blocks:
+            if not self.is_inside(tile) or not self[tile.x][tile.y].passable():
+                return False
+
+        return True
+
+    def _tile_size_if_0(self, value):
+        return value if value > 0 else TILE_SIZE
+
+    def validify_direction(self, current_position, direction):
+        """ Works only when direction is not diagonal """
+        newpos = current_position + direction
+
+        if self.valid_position(newpos):
+            return direction
+
+        if direction.x > 0:
+            next_block = self.get_block_coords(current_position.x + direction.x + TILE_SIZE, current_position.y)
+            direction.x = TILE_SIZE - self._tile_size_if_0(current_position.x % TILE_SIZE)
+        elif direction.x < 0:
+            next_block = self.get_block_coords(current_position.x + direction.x, current_position.y)
+            direction.x = -(current_position.x % TILE_SIZE)
+        elif direction.y > 0:
+            next_block = self.get_block_coords(current_position.x, current_position.y + direction.y + TILE_SIZE)
+            direction.y = TILE_SIZE - self._tile_size_if_0(current_position.y % TILE_SIZE)
+        elif direction.y < 0:
+            next_block = self.get_block_coords(current_position.x, current_position.y + direction.y)
+            direction.y = -(current_position.y % TILE_SIZE)
+
+        return direction
+
+    def is_inside(self, position):
+        return 0 <= position.x < SIZE_X and 0 <= position.y < SIZE_Y
+
     def draw_phoenix(self, screen):
         phoenix = image.load("assets/phoenix.png")
         x, y = to_pixels(self.phoenix[0])
@@ -57,9 +115,6 @@ class WorldWrapper(World):
         for wall in self.wall_rects:
             screen.blit(wall_pic, (wall.x, wall.y))
 
-    def convert(self, function):
-        pass
-
     def is_over(self):
         if self.multiplayer:
             if self.player_sprites['1'].player.dead and \
@@ -69,7 +124,6 @@ class WorldWrapper(World):
             self.game_over = True
 
     def update(self, delta):
-        self.convert(to_coords)
         for key, sprite in self.player_sprites.items():
             if sprite:
                 sprite.update(delta, self, self.wall_rects)

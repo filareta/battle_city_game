@@ -48,13 +48,10 @@ class PlayerWrapper(Sprite):
                 direction = Vec2D(1, 0)
                 self.player.angle = -90
 
-            # for wall in walls:
-            #     if self.rect.colliderect(wall):
-            #         direction = Vec2D(0, 0)
-            #         self.rect.left -= x
-            #         self.rect.top -= y
+            direction = world.validify_direction(self.player.coords, direction * TILE_SIZE * delta)
 
-            self.player.move(direction * TILE_SIZE * delta, world.world)
+            # if world.valid_direction(direction, world):
+            self.player.move(direction, world.world)
 
             # if choice[control[4]]:
             #     self.shoot()
