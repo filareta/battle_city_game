@@ -7,6 +7,8 @@ from pygame.rect import Rect
 from vector import Vec2D, to_pixels, to_coords
 from settings import ENEMIES, TILE_SIZE, SIZE_X, SIZE_Y, SCREEN_SIZE
 
+import math
+
 
 class PlayerWrapper(Sprite):
     bullet = None
@@ -48,7 +50,12 @@ class PlayerWrapper(Sprite):
                 direction = Vec2D(1, 0)
                 self.player.angle = -90
 
-            direction = world.validify_direction(self.player.coords, direction * TILE_SIZE * delta)
+            direction = direction * TILE_SIZE * delta
+
+            if world.enemy_hit_tile(self.player.coords + direction):
+                return
+
+            direction = world.validify_direction(self.player.coords, direction)
 
             # if world.valid_direction(direction, world):
             self.player.move(direction, world.world)
@@ -71,11 +78,13 @@ class EnemyWrapper(Sprite):
         self.enemy.turn = pic
         self.convert(to_pixels)
         self.image = image.load("assets/" + ENEMIES[pic])
-        x, y = self.enemy.coords[0][0], self.enemy.coords[0][1]
-        self.rect = Rect((x, y), self.image.get_size())
+
+    def has_hit(self, position):
+        return self.enemy.coords.x < position.x < self.enemy.coords.x + TILE_SIZE and \
+            self.enemy.coords.y < position.y < self.enemy.coords.y + TILE_SIZE
 
     def convert(self, function):
-        self.enemy.coords = [function(tile) for tile in self.enemy.coords]
+        self.enemy.coords = function(self.enemy.coords)
 
     def bullet(self):
         if self.enemy.bullet:
@@ -84,19 +93,19 @@ class EnemyWrapper(Sprite):
     def update(self, direction, world, index, cls, player):
         if self.enemy.direction.zero():
             self.enemy.direction = -direction
-        cls.clear_content(self.enemy.coords[0], 'E')
-        self.enemy.find_neighbours(self.enemy.coords[0], index, world, player)
-        self.enemy.move(world)
-        cls.set_content('E', self.enemy.coords)
-        cls.set_energy('E', self.enemy.coords)
-        x, y = self.enemy.direction * TILE_SIZE
-        self.rect.left += x
-        self.rect.top += y
+
+        # self.enemy.find_neighbours(self.enemy.coords[0], index, world, player)
+        # self.enemy.move(world)
+
+        # x, y = self.enemy.direction * TILE_SIZE
+
+        # self.rect.left += x
+        # self.rect.top += y
 
     def draw(self, screen):
         origin = self.image.convert_alpha()
         r = transform.rotate(origin, self.enemy.angle)
-        screen.blit(r, (self.enemy.coords[0][0], self.enemy.coords[0][1]))
+        screen.blit(r, (self.enemy.coords.x, self.enemy.coords.y))
 
 
 class BulletSprite(Sprite):

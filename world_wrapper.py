@@ -76,6 +76,29 @@ class WorldWrapper(World):
 
         return True
 
+    def enemy_hit(self, position):
+        for enemy in self.enemy_sprites:
+            if enemy.has_hit(position):
+                print(position, enemy.enemy.coords)
+                return enemy
+
+        return None
+
+    def enemy_hit_tile(self, position):
+        corners = [
+            Vec2D(position.x, position.y),
+            Vec2D(position.x + TILE_SIZE, position.y),
+            Vec2D(position.x, position.y + TILE_SIZE),
+            Vec2D(position.x + TILE_SIZE, position.y + TILE_SIZE),
+        ]
+
+        for corner in corners:
+            enemy = self.enemy_hit(corner)
+            if enemy is not None:
+                return enemy
+
+        return None
+
     def _tile_size_if_0(self, value):
         return value if value > 0 else TILE_SIZE
 
