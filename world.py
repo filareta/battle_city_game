@@ -8,8 +8,6 @@ from static_objects import Wall
 
 
 class Tile:
-    energy = 0
-
     def __init__(self, x, y, content):
         self.position = Vec2D(x, y)
         self.content = content
@@ -22,14 +20,10 @@ class Tile:
         return self.content == '0'
 
     def passable(self):
-        return self.content != 'B' and self.content != 'W' and \
-            self.content != 'F'
-
-    def no_energy(self):
-        return self.content == '0' and self.energy == 0
+        return self.content != 'B' and self.content != 'W' and self.content != 'F'
 
     def __str__(self):
-        return self.content + str(self.energy)
+        return self.content
 
 
 class World:
@@ -48,59 +42,49 @@ class World:
     def _read_map(self, map_file):
         with open(map_file) as file_map:
             for i, line in enumerate(file_map):
-                for j, item in enumerate(line):
+                for j, item in enumerate(item for item in line if item != ' ' and item != '\n'):
                     if item != ' ' and item != '\n':
-                        self._extend_map(i * 4, j * 2, item)
+                        self._extend_map(i, j, item)
 
-    def _create_object(self, item, coords):
+        self.print_world()
+
+    def print_world(self):
+        for y in range(SIZE_Y):
+            for x in range(SIZE_X):
+                print(self.world[x][y], end=" ")
+
+            print()
+
+    def _create_object(self, item, position):
         if item == 'Y':
-            self.players['1'] = Player(coords, 1)
+            self.players['1'] = Player(position, 1)
         elif item == 'G' and self.multiplayer:
-            self.players['2'] = Player(coords, 2)
+            self.players['2'] = Player(position, 2)
         elif item == 'F':
-            self.phoenix.append(coords)
+            self.phoenix.append(position)
         elif item == 'E':
-            new_enemy = Enemy(coords)
-            self.enemies.append(Enemy(coords))
+            new_enemy = Enemy(position)
+            self.enemies.append(Enemy(position))
             if (len(self.enemies) + 1) % 3 == 0:
                 new_enemy.target = "phoenix"
         elif item == 'B' or item == 'W':
-            for position in coords:
-                self.walls.append(Wall(coords))
+            self.walls.append(Wall(position))
         elif item == '#':
-            self.bounds = coords
+            self.bounds = position
 
     def _extend_map(self, i, j, item):
-        coords = []
-        for k in range(4):
-            for l in range(4):
-                if item != '#':
-                    self.world[j+l][i+k] = Tile(j+l, i+k, item)
-                elif j + l == 0 or j + l == SIZE_X or \
-                        i + k == 0 or i + k == SIZE_Y:
-                    self.world[j+l][i+k] = Tile(j+l, i+k, item)
-                else:
-                    self.world[j+l][i+k] = Tile(j+l, i+k, '0')
-                if item != '0':
-                    coords.append(Vec2D(j+l, i+k))
-        if coords:
-            if item == '#':
-                coords = [c for c in coords if c[0] == 0 or
-                          c[0] - 1 == SIZE_X or c[1] == 0 or
-                          c[1] - 1 == SIZE_Y]
-            self._create_object(item, coords)
-            self.set_energy(item, coords)
 
-    def set_energy(self, item, coords):
-        for tile in coords:
-            if item == 'Y' or item == 'G':
-                self.world[tile[0]][tile[1]].energy += 5
-            elif item == 'F':
-                self.world[tile[0]][tile[1]].energy = 4
-            elif item == 'E':
-                self.world[tile[0]][tile[1]].energy += -5
-            elif item == 'B':
-                self.world[tile[0]][tile[1]].energy = -15
+        if item != '#':
+            self.world[j][i] = Tile(j, i, item)
+
+        elif j == 0 or j == SIZE_X - 1 or i == 0 or i == SIZE_Y - 1:
+            print(j, i)
+            self.world[j][i] = Tile(j, i, item)
+
+        else:
+            self.world[j][i] = Tile(j, i, '0')
+
+        self._create_object(item, Vec2D(j, i))
 
     def set_content(self, item, coords):
         for tile in coords:
@@ -120,27 +104,6 @@ class World:
     def in_range(self, x, y):
         return x >= 0 and x < SIZE_X and y >= 0 and y < SIZE_Y
 
-    def brick_energy(self):
-        for wall in self.walls:
-            self.spread(4, wall.coords[0])
-            self.spread(4, wall.coords[3])
-            self.spread(4, wall.coords[-1])
-            self.spread(4, wall.coords[-4])
-
-    def set_bounds_energy(self):
-        for bounds in self.bounds:
-            for cell in bounds:
-                self.world[cell[0]][cell[1]].energy = -20
-                self.spread(3, cell)
-
-    def set_dynamics_energy(self):
-        for key, player in self.players.items():
-            if player:
-                self.spread(9, player.coords[0])
-                self.spread(9, player.coords[3])
-                self.spread(9, player.coords[-1])
-                self.spread(9, player.coords[-4])
-
     def spread(self, steps, cell):
         queue = deque()
         queue.append(cell)
@@ -159,10 +122,6 @@ class World:
         return filter((lambda c: self.in_range(c[0], c[1]) and
                        self.world[c[0]][c[1]].no_energy()), cells)
 
-    def clear_energy(self, coords):
-        for x, y in coords:
-            self.world[x][y].energy = 0
-
     def kill(self):
         for i, enemy in enumerate(self.enemies):
             if not enemy.alive:
@@ -170,10 +129,8 @@ class World:
         self.enemies = [enemy for enemy in self.enemies if enemy.alive]
         if self.players['1'].dead:
             self.clear_content(self.players['1'].coords[0], 'Y')
-            self.clear_energy(self.players['1'].coords)
         if self.multiplayer and self.players['2'].dead:
             self.clear_content(self.players['2'].coords[0], 'G')
-            self.clear_energy(self.players['2'].coords)
 
     def __getitem__(self, index):
         return self.world[index]

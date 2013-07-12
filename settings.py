@@ -1,5 +1,5 @@
-SIZE_X = 100
-SIZE_Y = 72
+SIZE_X = 25
+SIZE_Y = 18
 TILE_SIZE = 10
 SCREEN_SIZE = (1000, 720)
 MAPS = {1: "assets/simple_map.txt"}
