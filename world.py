@@ -74,7 +74,7 @@ class World:
 
     def _extend_map(self, i, j, item):
 
-        if item != '#':
+        if item != '#' and item != 'Y' and item != 'G' and item != 'E':
             self.world[j][i] = Tile(j, i, item)
 
         elif j == 0 or j == SIZE_X - 1 or i == 0 or i == SIZE_Y - 1:
@@ -89,17 +89,6 @@ class World:
     def set_content(self, item, coords):
         for tile in coords:
             self.world[tile[0]][tile[1]].content = item
-
-    def clear_content(self, start, item):
-        for i in range(4):
-            for j in range(4):
-                x = i + start[0]
-                y = j + start[1]
-                if self.in_range(x, y):
-                    self.world[x][y].content = '0'
-                if self.in_range(x, y) and self.world[x][y].empty() and \
-                   item == 'E':
-                    self.world[x][y].energy = 0
 
     def in_range(self, x, y):
         return x >= 0 and x < SIZE_X and y >= 0 and y < SIZE_Y

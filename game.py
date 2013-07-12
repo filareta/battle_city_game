@@ -81,7 +81,7 @@ class Game:
                     return
             if not self.game_over:
                 if self.start:
-                    self.world.update(dt / 100)
+                    self.world.update(dt / 300)
                     self.screen.fill((0, 0, 0))
                     self.world.draw(self.screen)
                     if self.world.game_over:

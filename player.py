@@ -4,8 +4,7 @@ from static_objects import Bullet
 
 
 class Player:
-    coords = []
-    direction = Vec2D(0, 0)
+    coords = None
     angle = 0
     health = 100
     dead = False
@@ -15,25 +14,17 @@ class Player:
         self.turn = turn
 
     def valid_direction(self, direction, world):
-        return self.valid(self.coords[0] + direction, world) and \
-            self.valid(self.coords[-1] + direction, world)
+        return True
+        # return self.valid(self.coords[0] + direction, world) and self.valid(self.coords[-1] + direction, world)
 
     def valid(self, cell, world):
-        return cell[0] >= 0 and cell[0] < SIZE_X and \
-            cell[1] >= 0 and cell[1] < SIZE_Y and \
-            world[cell[0]][cell[1]].passable()
+        return True
+        # return cell[0] >= 0 and cell[0] < SIZE_X and cell[1] >= 0 and cell[1] < SIZE_Y and world[cell[0]][cell[1]].passable()
 
     def move(self, direction, world):
         if not self.dead:
             if self.valid_direction(direction, world):
-                self.direction = direction
-                for i, position in enumerate(self.coords):
-                    ind1, ind2 = self.coords[i]
-                    move = position + direction
-                    world[move[0]][move[1]].energy += world[ind1][ind2].energy
-                    self.coords[i] = move
-            else:
-                self.direction = Vec2D(0, 0)
+                self.coords = self.coords + direction
 
     def create_bullet(self):
         if self.angle == 0:

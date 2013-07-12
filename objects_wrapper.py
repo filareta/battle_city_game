@@ -17,7 +17,6 @@ class PlayerWrapper(Sprite):
         self.convert(to_pixels)
         self.image = image.load("assets/player{}.png".format(player.turn))
         x, y = player.coords[0], player.coords[1]
-        self.rect = Rect((x, y), self.image.get_size())
 
     def convert(self, function):
         self.player.coords = function(self.player.coords)
@@ -25,7 +24,7 @@ class PlayerWrapper(Sprite):
     def shoot(self):
         self.bullet = BulletSprite(self.player.create_bullet())
 
-    def update(self, alpha, world, walls):
+    def update(self, delta, world, walls):
         if not self.player.dead:
             choice = key.get_pressed()
             if self.player.turn == 1:
@@ -34,7 +33,7 @@ class PlayerWrapper(Sprite):
             else:
                 control = (K_w, K_s, K_a, K_d, K_TAB)
                 sign = 'G'
-            world.clear_content(self.player.coords, sign)
+
             direction = Vec2D(0, 0)
             if choice[control[0]]:
                 direction = Vec2D(0, -1)
@@ -48,24 +47,23 @@ class PlayerWrapper(Sprite):
             if choice[control[3]]:
                 direction = Vec2D(1, 0)
                 self.player.angle = -90
-            x, y = direction * TILE_SIZE
-            self.rect.left += x
-            self.rect.top += y
-            for wall in walls:
-                if self.rect.colliderect(wall):
-                    direction = Vec2D(0, 0)
-                    self.rect.left -= x
-                    self.rect.top -= y
-            self.player.move(direction, world.world)
-            if choice[control[4]]:
-                self.shoot()
-            world.set_content(sign, self.player.coords)
+
+            # for wall in walls:
+            #     if self.rect.colliderect(wall):
+            #         direction = Vec2D(0, 0)
+            #         self.rect.left -= x
+            #         self.rect.top -= y
+
+            self.player.move(direction * TILE_SIZE * delta, world.world)
+
+            # if choice[control[4]]:
+            #     self.shoot()
 
     def draw(self, screen):
         if not self.player.dead:
             origin = self.image.convert_alpha()
             r = transform.rotate(origin, self.player.angle)
-            x, y = self.player.coords[0], self.player.coords[1]
+            x, y = self.player.coords.x, self.player.coords.y
             screen.blit(r, (x, y))
 
 

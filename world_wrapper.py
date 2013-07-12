@@ -58,11 +58,7 @@ class WorldWrapper(World):
             screen.blit(wall_pic, (wall.x, wall.y))
 
     def convert(self, function):
-        for key, sprite in self.player_sprites.items():
-            if sprite:
-                sprite.convert(function)
-        for enemy in self.enemy_sprites:
-            enemy.convert(function)
+        pass
 
     def is_over(self):
         if self.multiplayer:
@@ -75,9 +71,8 @@ class WorldWrapper(World):
     def update(self, delta):
         self.convert(to_coords)
         for key, sprite in self.player_sprites.items():
-            pass
-            # if sprite:
-                # sprite.update(delta, self, self.wall_rects)
+            if sprite:
+                sprite.update(delta, self, self.wall_rects)
         #         if sprite.bullet:
         #             self.bullets.append(sprite.bullet)
 
