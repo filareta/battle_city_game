@@ -19,16 +19,16 @@ class Player:
 
     def create_bullet(self):
         if self.angle == 0:
-            start = self.coords[2] + Vec2D(0, -1)
+            start = self.coords + Vec2D(TILE_SIZE/2 - 2, 0)
             return Bullet(start, Vec2D(0, -1), self.angle, "player")
         elif self.angle == -180:
-            start = self.coords[2] + Vec2D(0, 1)
+            start = self.coords + Vec2D(TILE_SIZE/2 - 4, TILE_SIZE - 4)
             return Bullet(start, Vec2D(0, 1), self.angle, "player")
         elif self.angle == 90:
-            start = self.coords[2] + Vec2D(-1, 2)
+            start = self.coords + Vec2D(4, TILE_SIZE/2 - 4)
             return Bullet(start, Vec2D(-1, 0), self.angle, "player")
         elif self.angle == -90:
-            start = self.coords[2] + Vec2D(1, 2)
+            start = self.coords + Vec2D(TILE_SIZE - 8, TILE_SIZE/2 - 4)
             return Bullet(start, Vec2D(1, 0), self.angle, "player")
 
     def check_health(self, decrease):

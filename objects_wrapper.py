@@ -5,20 +5,20 @@ from pygame.sprite import Sprite, collide_rect
 from pygame.rect import Rect
 
 from vector import Vec2D, to_pixels, to_coords
-from settings import ENEMIES, TILE_SIZE, SIZE_X, SIZE_Y, SCREEN_SIZE
+from settings import ENEMIES, TILE_SIZE, SIZE_X, SIZE_Y, SCREEN_SIZE, RELOAD_TIME
 
 import math
 
 
 class PlayerWrapper(Sprite):
     bullet = None
+    reload_time = 0
 
     def __init__(self, player):
         super(PlayerWrapper, self).__init__()
         self.player = player
         self.convert(to_pixels)
         self.image = image.load("assets/player{}.png".format(player.turn))
-        x, y = player.coords[0], player.coords[1]
 
     def has_hit(self, position):
         return self.player.coords.x < position.x < self.player.coords.x + TILE_SIZE and \
@@ -28,6 +28,10 @@ class PlayerWrapper(Sprite):
         self.player.coords = function(self.player.coords)
 
     def shoot(self):
+        if self.reload_time > 0:
+            return
+
+        self.reload_time = RELOAD_TIME
         self.bullet = BulletSprite(self.player.create_bullet())
 
     def update(self, delta, world, walls):
@@ -67,8 +71,11 @@ class PlayerWrapper(Sprite):
             if not direction.zero():
                 world.update_aim_lines()
 
-            # if choice[control[4]]:
-            #     self.shoot()
+            if self.reload_time > 0:
+                self.reload_time -= delta
+
+            if choice[control[4]]:
+                self.shoot()
 
     def draw(self, screen):
         if not self.player.dead:
@@ -138,28 +145,15 @@ class EnemyWrapper(Sprite):
 
 
 class BulletSprite(Sprite):
-    active = True
-
     def __init__(self, bullet):
         super(BulletSprite, self).__init__()
         self.bullet = bullet
         self.image = image.load("assets/bullet.png")
-        x, y = to_pixels(self.bullet.pos)
-        self.rect = Rect((x, y), self.image.get_size())
 
-    def update(self, world, alpha):
-        if self.active:
-            self.bullet.flight(world, alpha)
-            x, y = self.bullet.direction * self.bullet.ttl
-            self.rect.left += x
-            self.rect.top += y
-            if self.rect.left < 0 or self.rect.top < 0 or \
-                    self.rect.left > SCREEN_SIZE[0] or \
-                    self.rect.top > SCREEN_SIZE[1]:
-                self.active = False
+    def update(self, world, delta):
+        self.bullet.flight(world, delta)
 
     def draw(self, screen):
-        if self.active:
-            origin = self.image.convert_alpha()
-            rotated = transform.rotate(origin, self.bullet.angle)
-            screen.blit(rotated, (self.rect.left, self.rect.top))
+        origin = self.image.convert_alpha()
+        rotated = transform.rotate(origin, self.bullet.angle)
+        screen.blit(rotated, (self.bullet.pos.x, self.bullet.pos.y))

@@ -15,7 +15,7 @@ class WorldWrapper(World):
     player_sprites = {'1': None, '2': None}
     enemy_sprites = []
     wall_rects = []
-    bullets = []
+    bullets = set()
 
     game_over = False
 
@@ -45,8 +45,7 @@ class WorldWrapper(World):
         for enemy in self.enemy_sprites:
             enemy.draw(screen)
         for bullet_sprite in self.bullets:
-            if bullet_sprite.bullet.ttl:
-                bullet_sprite.draw(screen)
+            bullet_sprite.draw(screen)
         self.draw_walls(screen)
         self.draw_phoenix(screen)
 
@@ -73,8 +72,9 @@ class WorldWrapper(World):
         for key, sprite in self.player_sprites.items():
             if sprite:
                 sprite.update(delta, self, self.wall_rects)
-        #         if sprite.bullet:
-        #             self.bullets.append(sprite.bullet)
+                if sprite.bullet:
+                    self.bullets.add(sprite.bullet)
+                    sprite.bullet = None
 
         for index, enemy in enumerate(self.enemy_sprites):
             enemy.update(delta, self)
@@ -113,11 +113,11 @@ class WorldWrapper(World):
         #         if sprite.bullet.owner == "player" and rect_collision(enemy_sprite.rect, sprite.rect):
         #             enemy_sprite.enemy.check_health()
 
-        # for bullet_sprite in self.bullets:
-        #     if bullet_sprite.bullet.ttl:
-        #         bullet_sprite.update(self.world, delta)
-        #     else:
-        #         bullet_sprite.active = False
+        for bullet_sprite in list(self.bullets):
+            if bullet_sprite.bullet.active:
+                bullet_sprite.update(self.world, delta)
+            else:
+                self.bullets.remove(bullet_sprite)
 
         # self.kill()
         # self.bullets = [bullet for bullet in self.bullets if bullet.active]
