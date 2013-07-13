@@ -13,7 +13,7 @@ import math
 
 class WorldWrapper(World):
     player_sprites = {'1': None, '2': None}
-    enemy_sprites = []
+    enemy_sprites = set()
     wall_rects = []
     bullets = set()
 
@@ -36,7 +36,7 @@ class WorldWrapper(World):
                 self.player_sprites[key] = PlayerWrapper(player)
         for enemy in self.enemies:
             new_enemy = EnemyWrapper(enemy, len(self.enemy_sprites) % 2)
-            self.enemy_sprites.append(new_enemy)
+            self.enemy_sprites.add(new_enemy)
 
     def draw(self, screen):
         for key, player in self.player_sprites.items():
@@ -113,11 +113,21 @@ class WorldWrapper(World):
         #         if sprite.bullet.owner == "player" and rect_collision(enemy_sprite.rect, sprite.rect):
         #             enemy_sprite.enemy.check_health()
 
-        for bullet_sprite in list(self.bullets):
+        for bullet_sprite in self.bullets:
             if bullet_sprite.bullet.active:
-                bullet_sprite.update(self.world, delta)
-            else:
-                self.bullets.remove(bullet_sprite)
+                bullet_sprite.update(self, delta)
+
+                if bullet_sprite.bullet.owner == "player":
+                    enemy_hit = self.enemy_hit(bullet_sprite.bullet.pos)
+
+                    if enemy_hit:
+                        bullet_sprite.bullet.active = False
+                        enemy_hit.bullet_hit()
+
+                        if not enemy_hit.enemy.alive:
+                            self.enemy_sprites.remove(enemy_hit)
+
+        self.bullets = {bullet for bullet in self.bullets if bullet.bullet.active}
 
         # self.kill()
         # self.bullets = [bullet for bullet in self.bullets if bullet.active]

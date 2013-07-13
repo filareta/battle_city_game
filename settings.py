@@ -8,3 +8,4 @@ CONTENT = {'Y': 'Y', 'G': 'G', 'B': 'B', 'W': 'W',
            'F': 'F', '0': '0', 'E': 'E', '#': '#'}
 BULLET_RELATIVE_SPEED = 2
 RELOAD_TIME = 2
+ENEMY_HEALTH = 2  # In number of hits needed

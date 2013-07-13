@@ -104,6 +104,9 @@ class EnemyWrapper(Sprite):
         if self.enemy.bullet:
             return BulletSprite(self.enemy.bullet)
 
+    def bullet_hit(self):
+        return self.enemy.bullet_hit()
+
     def update(self, delta, world):
         direction, player_name = world.get_next_direction(self.enemy.coords)
         direction = direction * delta
