@@ -86,10 +86,10 @@ class WorldWrapper(World):
 
     def enemy_hit_tile(self, position):
         corners = [
-            Vec2D(position.x, position.y),
-            Vec2D(position.x + TILE_SIZE, position.y),
-            Vec2D(position.x, position.y + TILE_SIZE),
-            Vec2D(position.x + TILE_SIZE, position.y + TILE_SIZE),
+            Vec2D(position.x + 1, position.y + 1),
+            Vec2D(position.x + TILE_SIZE - 1, position.y + 1),
+            Vec2D(position.x + 1, position.y + TILE_SIZE - 1),
+            Vec2D(position.x + TILE_SIZE - 1, position.y + TILE_SIZE - 1),
         ]
 
         for corner in corners:
