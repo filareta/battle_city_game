@@ -26,20 +26,9 @@ class Enemy():
         if self.health <= 0:
             self.alive = False
 
-    def move(self, world):
-        for i, position in enumerate(self.coords):
-            ind1, ind2 = self.coords[i]
-            move = position + self.direction
-            world[move[0]][move[1]].energy += world[ind1][ind2].energy
-            self.coords[i] = move
-        if self.direction[0] == 0 and self.direction[1] < 0:
-            self.angle = -180
-        elif self.direction[0] == 0 and self.direction[1] > 0:
-            self.angle = 0
-        elif self.direction[1] == 0 and self.direction[0] < 0:
-            self.angle = -90
-        elif self.direction[1] == 0 and self.direction[0] > 0:
-            self.angle = 90
+    def move(self, world, direction):
+        if self.alive:
+            self.coords = self.coords + direction
 
     def valid_moves(self, cell):
         directions = [Vec2D(4, 0), Vec2D(0, -4), Vec2D(-4, 0), Vec2D(0, 4)]
@@ -61,28 +50,6 @@ class Enemy():
                 key = world[next[0]][next[1]].energy
                 neigh_dict[key].append(direction // 4)
         self.direction = self.find_next(neigh_dict, index, world, player)
-
-    def check_direction(self, cell, direction, world):
-        p = cell + direction
-        return \
-            p[0] >= 0 and p[0] < SIZE_X and \
-            p[1] >= 0 and p[1] < SIZE_Y and \
-            world[p[0]][p[1]].empty()
-
-    def check_for_player(self, cell, direction, world):
-        p = cell + direction
-        return \
-            p[0] >= 0 and p[0] < SIZE_X and \
-            p[1] >= 0 and p[1] < SIZE_Y and \
-            (world[p[0]][p[1]].empty() or \
-             world[p[0]][p[1]].content == 'G' or \
-             world[p[0]][p[1]].content == 'Y')
-
-    def detect_collision(self, direction, world):
-        cells = [cell + direction for cell in self.coords
-                 if self.check_for_player(cell, direction, world)]
-        return any([world[x][y].content == 'Y' or
-                    world[x][y].content == 'G' for x, y in cells])
 
     def find_next(self, neighbour_dirs, index, world, player):
         if player.distance(self.coords[0]) <= 10:

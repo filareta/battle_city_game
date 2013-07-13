@@ -20,6 +20,10 @@ class PlayerWrapper(Sprite):
         self.image = image.load("assets/player{}.png".format(player.turn))
         x, y = player.coords[0], player.coords[1]
 
+    def has_hit(self, position):
+        return self.player.coords.x < position.x < self.player.coords.x + TILE_SIZE and \
+            self.player.coords.y < position.y < self.player.coords.y + TILE_SIZE
+
     def convert(self, function):
         self.player.coords = function(self.player.coords)
 
@@ -60,6 +64,9 @@ class PlayerWrapper(Sprite):
             # if world.valid_direction(direction, world):
             self.player.move(direction, world.world)
 
+            if not direction.zero():
+                world.update_aim_lines()
+
             # if choice[control[4]]:
             #     self.shoot()
 
@@ -90,17 +97,39 @@ class EnemyWrapper(Sprite):
         if self.enemy.bullet:
             return BulletSprite(self.enemy.bullet)
 
-    def update(self, direction, world, index, cls, player):
-        if self.enemy.direction.zero():
-            self.enemy.direction = -direction
+    def update(self, delta, world):
+        direction, player_name = world.get_next_direction(self.enemy.coords)
+        direction = direction * delta
+        newpos = self.enemy.coords + direction
 
-        # self.enemy.find_neighbours(self.enemy.coords[0], index, world, player)
-        # self.enemy.move(world)
+        if world.player_hit_tile(newpos):
+            return
 
-        # x, y = self.enemy.direction * TILE_SIZE
+        if direction.y > 0:
+            self.enemy.angle = 0
+        if direction.y < 0:
+            self.enemy.angle = -180
+        if direction.x > 0:
+            self.enemy.angle = 90
+        if direction.x < 0:
+            self.enemy.angle = -90
 
-        # self.rect.left += x
-        # self.rect.top += y
+        if direction.zero():
+            # Look at player
+            player_direction = world.players[player_name].coords - self.enemy.coords
+
+            if abs(player_direction.x) > abs(player_direction.y):
+                if player_direction.x > 0:
+                    self.enemy.angle = 90
+                else:
+                    self.enemy.angle = -90
+            else:
+                if player_direction.y > 0:
+                    self.enemy.angle = 0
+                else:
+                    self.enemy.angle = 180
+
+        self.enemy.move(world, direction)
 
     def draw(self, screen):
         origin = self.image.convert_alpha()
