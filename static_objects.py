@@ -3,11 +3,15 @@ from vector import Vec2D
 
 
 class Wall:
-    def __init__(self, coords):
+    def __init__(self, coords, breakable=False):
         self.coords = coords
+        self.breakable = breakable
 
     def __eq__(self, other):
         return self.coords == other.coords
+
+    def is_breakable(self):
+        return breakable
 
 
 class Bullet:

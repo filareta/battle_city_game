@@ -24,8 +24,11 @@ class Tile:
     def passable(self):
         return self.content != 'B' and self.content != 'W' and self.content != 'F'
 
-    def is_wall(self):
+    def is_brick(self):
         return self.content == 'B'
+
+    def is_wall(self):
+        return self.content == 'W'
 
     def __str__(self):
         return self.content
@@ -81,8 +84,10 @@ class World:
             self.enemies.append(Enemy(position))
             if (len(self.enemies) + 1) % 3 == 0:
                 new_enemy.target = "phoenix"
-        elif item == 'B' or item == 'W':
-            self.walls.append(Wall(position))
+        elif item == 'B':
+            self.walls.append(Wall(position, breakable=True))
+        elif item == 'W':
+            self.walls.append(Wall(position, breakable=False))
         elif item == '#':
             self.bounds = position
 

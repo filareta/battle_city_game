@@ -4,7 +4,7 @@ from pygame.sprite import Group, spritecollide, collide_rect
 from world import World
 from collider import rect_collision, reactor
 from vector import to_coords, to_pixels
-from objects_wrapper import PlayerWrapper, EnemyWrapper
+from objects_wrapper import PlayerWrapper, EnemyWrapper, WallWrapper
 from settings import TILE_SIZE, SIZE_X, SIZE_Y
 from vector import Vec2D
 
@@ -15,6 +15,7 @@ class WorldWrapper(World):
     player_sprites = {'1': None, '2': None}
     enemy_sprites = set()
     wall_rects = []
+    unbreakable_wall_rects = []
     bullets = set()
 
     game_over = False
@@ -29,7 +30,9 @@ class WorldWrapper(World):
         wall_pic = image.load("assets/brick.png")
         for wall in self.walls:
             x, y = to_pixels(wall.coords)
-            self.wall_rects.append(Rect((x, y), wall_pic.get_size()))
+            wall_rect = WallWrapper(wall, (x, y), wall_pic.get_size())
+
+            self.wall_rects.append(wall_rect)
 
     def _create_sprites(self):
         for key, player in self.players.items():
@@ -58,8 +61,13 @@ class WorldWrapper(World):
 
     def draw_walls(self, screen):
         wall_pic = image.load("assets/brick.png")
+        unbreakable_wall_pic = image.load("assets/wall.png")
+
         for wall in self.wall_rects:
-            screen.blit(wall_pic, (wall.x, wall.y))
+            if wall.wall.breakable:
+                screen.blit(wall_pic, (wall.x, wall.y))
+            else:
+                screen.blit(unbreakable_wall_pic, (wall.x, wall.y))
 
     def is_over(self):
         if self.multiplayer:
@@ -89,7 +97,7 @@ class WorldWrapper(World):
                 bullet_sprite.update(self, delta)
 
                 tile = self.get_block_coords(bullet_sprite.bullet.pos.x, bullet_sprite.bullet.pos.y)
-                if self[tile.x][tile.y].is_wall():
+                if self[tile.x][tile.y].is_brick():
                     bullet_sprite.bullet.active = False
                     self[tile.x][tile.y].content = '0'
 
@@ -98,6 +106,8 @@ class WorldWrapper(World):
                     ]
 
                     self.update_aim_lines()
+                elif self[tile.x][tile.y].is_wall():
+                    bullet_sprite.bullet.active = False
 
                 if bullet_sprite.bullet.owner == "player":
                     enemy_hit = self.enemy_hit(bullet_sprite.bullet.pos)

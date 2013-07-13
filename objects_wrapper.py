@@ -174,3 +174,10 @@ class BulletSprite(Sprite):
         origin = self.image.convert_alpha()
         rotated = transform.rotate(origin, self.bullet.angle)
         screen.blit(rotated, (self.bullet.pos.x, self.bullet.pos.y))
+
+
+class WallWrapper(Rect):
+    def __init__(self, wall, coords, size):
+        super().__init__(coords, size)
+
+        self.wall = wall
