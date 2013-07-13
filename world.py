@@ -46,7 +46,7 @@ class World:
 
         self.multiplayer = multiplayer
         self.world = [[None for y in range(SIZE_Y)] for x in range(SIZE_X)]
-        self.aim_tiles = [[0 for y in range(SIZE_Y)] for x in range(SIZE_X)]
+        self.aim_tiles = [[(0, False) for y in range(SIZE_Y)] for x in range(SIZE_X)]
         self.pathing = [[None for y in range(SIZE_Y)] for x in range(SIZE_X)]
         self._read_map(map_file)
 
@@ -118,19 +118,20 @@ class World:
                 self.pathing[x][y] = None
 
         found_cell = None
+        through_brick = False
         from_pos.x = math.floor(from_pos.x)
         from_pos.y = math.floor(from_pos.y)
         from_cell = self.get_block_coords(from_pos.x, from_pos.y)
 
-        if self.aim_tiles[from_cell.x][from_cell.y] != 0:
+        if self.aim_tiles[from_cell.x][from_cell.y] != (0, False):
             direction = (from_cell * TILE_SIZE) - from_pos
 
-            return (direction, self.aim_tiles[from_cell.x][from_cell.y])
+            return (direction, self.aim_tiles[from_cell.x][from_cell.y][0])
 
         queue = deque()
         queue.append(from_cell)
 
-        while queue and found_cell is None:
+        while queue and (found_cell is None or through_brick):
             cell = queue.popleft()
             neighbours = self.passable_neighbours(cell)
             for n in neighbours:
@@ -140,9 +141,14 @@ class World:
                 queue.append(n)
                 self.pathing[n.x][n.y] = cell
 
-                if self.aim_tiles[n.x][n.y] != 0:
-                    found_cell = n
-                    break
+                if self.aim_tiles[n.x][n.y] != (0, False):
+                    if self.aim_tiles[n.x][n.y][1]:  # Must shoot through a wall
+                        through_brick = True
+                        found_cell = n
+                    else:
+                        through_brick = False
+                        found_cell = n
+                        break
 
         if found_cell is not None:
             cell = found_cell
@@ -161,7 +167,7 @@ class World:
             new_dir = self.validify_direction(from_pos, one_way)
 
             if not new_dir.zero():
-                return (new_dir, self.aim_tiles[cell.x][cell.y])
+                return (new_dir, self.aim_tiles[cell.x][cell.y][0])
             else:
                 one_way = Vec2D(direction.x, direction.y)
                 one_way.x = 0
@@ -172,7 +178,7 @@ class World:
 
                 new_dir = self.validify_direction(from_pos, one_way)
 
-                return (new_dir, self.aim_tiles[cell.x][cell.y])
+                return (new_dir, self.aim_tiles[cell.x][cell.y][0])
         else:
             return (Vec2D(0, 0), '1')
 
@@ -180,16 +186,6 @@ class World:
         dirs = [Vec2D(1, 0), Vec2D(0, -1), Vec2D(-1, 0), Vec2D(0, 1)]
         cells = [direction + cell for direction in dirs]
         return filter((lambda c: self.in_range(c.x, c.y) and self[c.x][c.y].passable()), cells)
-
-    def kill(self):
-        for i, enemy in enumerate(self.enemies):
-            if not enemy.alive:
-                self.clear_content(enemy.coords[0], 'E')
-        self.enemies = [enemy for enemy in self.enemies if enemy.alive]
-        if self.players['1'].dead:
-            self.clear_content(self.players['1'].coords[0], 'Y')
-        if self.multiplayer and self.players['2'].dead:
-            self.clear_content(self.players['2'].coords[0], 'G')
 
     def __getitem__(self, index):
         return self.world[index]
@@ -299,7 +295,7 @@ class World:
     def update_aim_lines(self):
         for x in range(SIZE_X):
             for y in range(SIZE_Y):
-                self.aim_tiles[x][y] = 0
+                self.aim_tiles[x][y] = (0, False)
 
         for player_num, player in self.players.items():
             if player and not player.dead:
@@ -314,9 +310,20 @@ class World:
 
                 for direction in directions:
                     pos = tile + direction
+                    through_brick_wall = False
 
-                    while self.in_range(pos.x, pos.y) and self[pos.x][pos.y].passable():
-                        self.aim_tiles[pos.x][pos.y] = player_num
+                    while self.in_range(pos.x, pos.y) and not self[pos.x][pos.y].is_wall():
+                        if not self[pos.x][pos.y].passable():
+                            self.aim_tiles[pos.x][pos.y] = (0, False)
+
+                            if self[pos.x][pos.y].is_brick():
+                                through_brick_wall = True
+
+                            pos = pos + direction
+                            continue
+
+                        self.aim_tiles[pos.x][pos.y] = (player_num, through_brick_wall)
+
                         pos = pos + direction
 
         # self.print_aim_lines()

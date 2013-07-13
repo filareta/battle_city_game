@@ -9,4 +9,4 @@ CONTENT = {'Y': 'Y', 'G': 'G', 'B': 'B', 'W': 'W',
 BULLET_RELATIVE_SPEED = 2
 RELOAD_TIME = 2
 ENEMY_HEALTH = 2  # In number of hits needed
-PLAYER_HEALTH = 2  # --- || ---
+PLAYER_HEALTH = 4  # --- || ---

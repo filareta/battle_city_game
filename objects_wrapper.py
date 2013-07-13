@@ -19,7 +19,7 @@ class PlayerWrapper(Sprite):
         self.image = image.load("assets/player{}.png".format(player.turn))
 
         self.bullet = None
-        self.reload_time = 0
+        self.reload_time = 1
 
     def has_hit(self, position):
         return self.player.coords.x < position.x < self.player.coords.x + TILE_SIZE and \
