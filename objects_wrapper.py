@@ -34,6 +34,9 @@ class PlayerWrapper(Sprite):
         self.reload_time = RELOAD_TIME
         self.bullet = BulletSprite(self.player.create_bullet())
 
+    def bullet_hit(self):
+        return self.player.bullet_hit()
+
     def update(self, delta, world, walls):
         if not self.player.dead:
             choice = key.get_pressed()
@@ -86,6 +89,9 @@ class PlayerWrapper(Sprite):
 
 
 class EnemyWrapper(Sprite):
+    bullet = None
+    reload_time = 0
+
     def __init__(self, enemy, pic):
         super(EnemyWrapper, self).__init__()
         self.enemy = enemy
@@ -100,9 +106,12 @@ class EnemyWrapper(Sprite):
     def convert(self, function):
         self.enemy.coords = function(self.enemy.coords)
 
-    def bullet(self):
-        if self.enemy.bullet:
-            return BulletSprite(self.enemy.bullet)
+    def shoot(self):
+        if self.reload_time > 0:
+            return
+
+        self.reload_time = RELOAD_TIME
+        self.bullet = BulletSprite(self.enemy.create_bullet())
 
     def bullet_hit(self):
         return self.enemy.bullet_hit()
@@ -124,6 +133,11 @@ class EnemyWrapper(Sprite):
         if direction.x < 0:
             self.enemy.angle = -90
 
+        self.enemy.move(world, direction)
+
+        if self.reload_time > 0:
+            self.reload_time -= delta
+
         if direction.zero():
             # Look at player
             player_direction = world.players[player_name].coords - self.enemy.coords
@@ -139,7 +153,7 @@ class EnemyWrapper(Sprite):
                 else:
                     self.enemy.angle = 180
 
-        self.enemy.move(world, direction)
+            self.shoot()
 
     def draw(self, screen):
         origin = self.image.convert_alpha()

@@ -1,12 +1,12 @@
 from vector import Vec2D
-from settings import TILE_SIZE, SIZE_X, SIZE_Y
+from settings import TILE_SIZE, SIZE_X, SIZE_Y, PLAYER_HEALTH
 from static_objects import Bullet
 
 
 class Player:
     coords = None
     angle = 0
-    health = 100
+    health = PLAYER_HEALTH
     dead = False
 
     def __init__(self, coords, turn):
@@ -31,7 +31,7 @@ class Player:
             start = self.coords + Vec2D(TILE_SIZE - 8, TILE_SIZE/2 - 4)
             return Bullet(start, Vec2D(1, 0), self.angle, "player")
 
-    def check_health(self, decrease):
-        self.health -= decrease
+    def bullet_hit(self):
+        self.health -= 1
         if self.health <= 0:
             self.dead = True
