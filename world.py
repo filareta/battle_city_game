@@ -24,6 +24,9 @@ class Tile:
     def passable(self):
         return self.content != 'B' and self.content != 'W' and self.content != 'F'
 
+    def is_wall(self):
+        return self.content == 'B'
+
     def __str__(self):
         return self.content
 
