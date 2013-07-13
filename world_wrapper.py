@@ -71,7 +71,7 @@ class WorldWrapper(World):
 
     def update(self, delta):
         for key, sprite in self.player_sprites.items():
-            if sprite:
+            if sprite and not sprite.player.dead:
                 sprite.update(delta, self, self.wall_rects)
                 if sprite.bullet:
                     self.bullets.add(sprite.bullet)
@@ -114,6 +114,7 @@ class WorldWrapper(World):
                     if player_hit:
                         bullet_sprite.bullet.active = False
                         player_hit.bullet_hit()
+                        self.update_aim_lines()
 
         self.bullets = {bullet for bullet in self.bullets if bullet.bullet.active}
 

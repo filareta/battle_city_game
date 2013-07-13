@@ -17,7 +17,6 @@ class Enemy():
         self.coords = coords
 
     def create_bullet(self):
-        print(self.angle)
         if self.angle == 180:
             start = self.coords + Vec2D(TILE_SIZE/2 - 2, 0)
             return Bullet(start, Vec2D(0, -1), self.angle, "enemy")

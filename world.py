@@ -296,7 +296,7 @@ class World:
                 self.aim_tiles[x][y] = 0
 
         for player_num, player in self.players.items():
-            if player:
+            if player and not player.dead:
                 tile = self.get_center_block(player.coords.x, player.coords.y)
 
                 directions = [
