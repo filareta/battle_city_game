@@ -4,14 +4,13 @@ from static_objects import Bullet
 
 
 class Player:
-    coords = None
-    angle = 0
-    health = PLAYER_HEALTH
-    dead = False
-
     def __init__(self, coords, turn):
-        self.coords = coords
+        self.angle = 0
+        self.health = PLAYER_HEALTH
+        self.dead = False
+
         self.turn = turn
+        self.coords = coords
 
     def move(self, direction, world):
         if not self.dead:

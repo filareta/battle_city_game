@@ -11,14 +11,15 @@ import math
 
 
 class PlayerWrapper(Sprite):
-    bullet = None
-    reload_time = 0
 
     def __init__(self, player):
         super(PlayerWrapper, self).__init__()
         self.player = player
         self.convert(to_pixels)
         self.image = image.load("assets/player{}.png".format(player.turn))
+
+        self.bullet = None
+        self.reload_time = 0
 
     def has_hit(self, position):
         return self.player.coords.x < position.x < self.player.coords.x + TILE_SIZE and \
@@ -89,8 +90,6 @@ class PlayerWrapper(Sprite):
 
 
 class EnemyWrapper(Sprite):
-    bullet = None
-    reload_time = 0
 
     def __init__(self, enemy, pic):
         super(EnemyWrapper, self).__init__()
@@ -98,6 +97,9 @@ class EnemyWrapper(Sprite):
         self.enemy.turn = pic
         self.convert(to_pixels)
         self.image = image.load("assets/" + ENEMIES[pic])
+
+        self.bullet = None
+        self.reload_time = 0
 
     def has_hit(self, position):
         return self.enemy.coords.x < position.x < self.enemy.coords.x + TILE_SIZE and \

@@ -12,15 +12,16 @@ import math
 
 
 class WorldWrapper(World):
-    player_sprites = {'1': None, '2': None}
-    enemy_sprites = set()
-    wall_rects = []
-    unbreakable_wall_rects = []
-    bullets = set()
-
-    game_over = False
 
     def __init__(self, world_map, multiplayer):
+        self.player_sprites = {'1': None, '2': None}
+        self.enemy_sprites = set()
+        self.wall_rects = []
+        self.unbreakable_wall_rects = []
+        self.bullets = set()
+
+        self.game_over = False
+
         World.__init__(self, world_map, multiplayer)
         self._create_sprites()
         self._set_walls()

@@ -35,14 +35,15 @@ class Tile:
 
 
 class World:
-    players = {'1': None, '2': None}
-    enemies = []
-    walls = []
-    bounds = []
-    phoenix = []
-    multiplayer = False
 
     def __init__(self, map_file, multiplayer):
+        self.players = {'1': None, '2': None}
+        self.enemies = []
+        self.walls = []
+        self.bounds = []
+        self.phoenix = []
+        self.multiplayer = False
+
         self.multiplayer = multiplayer
         self.world = [[None for y in range(SIZE_Y)] for x in range(SIZE_X)]
         self.aim_tiles = [[0 for y in range(SIZE_Y)] for x in range(SIZE_X)]

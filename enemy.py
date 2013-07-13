@@ -5,16 +5,15 @@ from settings import TILE_SIZE, ENEMIES, SIZE_X, SIZE_Y, ENEMY_HEALTH
 
 
 class Enemy():
-    coords = None
-    direction = Vec2D(0, 0)
-    angle = 0
-    turn = 0
-    alive = True
-    health = ENEMY_HEALTH
-    bullet = None
-
     def __init__(self, coords):
         self.coords = coords
+        self.health = ENEMY_HEALTH
+        self.bullet = None
+
+        self.direction = Vec2D(0, 0)
+        self.angle = 0
+        self.turn = 0
+        self.alive = True
 
     def create_bullet(self):
         if self.angle == 180:

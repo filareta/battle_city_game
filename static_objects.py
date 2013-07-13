@@ -15,13 +15,12 @@ class Wall:
 
 
 class Bullet:
-    active = True
-
     def __init__(self, coords, direction, angle, owner):
         self.pos = coords
         self.direction = direction
         self.angle = angle
         self.owner = owner
+        self.active = True
 
     def flight(self, world, delta):
         move = self.pos + self.direction * TILE_SIZE * delta * BULLET_RELATIVE_SPEED
