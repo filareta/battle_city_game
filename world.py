@@ -215,14 +215,14 @@ class World:
 
         return True
 
-    def enemy_hit(self, position):
+    def enemy_hit(self, position, except_for=None):
         for enemy in self.enemy_sprites:
-            if enemy.has_hit(position):
+            if enemy != except_for and enemy.has_hit(position):
                 return enemy
 
         return None
 
-    def enemy_hit_tile(self, position):
+    def enemy_hit_tile(self, position, except_for=None):
         corners = [
             Vec2D(position.x + 1, position.y + 1),
             Vec2D(position.x + TILE_SIZE - 1, position.y + 1),
@@ -231,7 +231,7 @@ class World:
         ]
 
         for corner in corners:
-            enemy = self.enemy_hit(corner)
+            enemy = self.enemy_hit(corner, except_for=except_for)
             if enemy is not None:
                 return enemy
 

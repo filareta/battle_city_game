@@ -102,7 +102,7 @@ class EnemyWrapper(Sprite):
         direction = direction * delta
         newpos = self.enemy.coords + direction
 
-        if world.player_hit_tile(newpos):
+        if world.player_hit_tile(newpos) or world.enemy_hit_tile(newpos, except_for=self):
             return
 
         if direction.y > 0:
