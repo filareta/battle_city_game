@@ -120,6 +120,13 @@ class WorldWrapper(World):
                 tile = self.get_block_coords(bullet_sprite.bullet.pos.x, bullet_sprite.bullet.pos.y)
                 if self[tile.x][tile.y].is_wall():
                     bullet_sprite.bullet.active = False
+                    self[tile.x][tile.y].content = '0'
+
+                    self.wall_rects = [
+                        wall for wall in self.wall_rects if wall.x != tile.x * TILE_SIZE or wall.y != tile.y * TILE_SIZE
+                    ]
+
+                    self.update_aim_lines()
 
                 if bullet_sprite.bullet.owner == "player":
                     enemy_hit = self.enemy_hit(bullet_sprite.bullet.pos)
