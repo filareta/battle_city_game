@@ -21,7 +21,7 @@ class Player:
     def valid(self, cell, world):
         return cell[0] >= 0 and cell[0] < SIZE_X and \
             cell[1] >= 0 and cell[1] < SIZE_Y and \
-            world[cell[0]][cell[1]].passable()
+            world[cell[0]][cell[1]].empty()
 
     def move(self, direction, world):
         if not self.dead:
