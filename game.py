@@ -39,7 +39,6 @@ class Game:
 
     def _game_over(self):
         self.game_over = True
-        self.restart = True
         self.point.top = 480
         self.point.left = 310
         self.screen.blit(self.over_screen, (self.over.x, self.over.y))
@@ -61,15 +60,14 @@ class Game:
 
     def restart_game(self):
         move = key.get_pressed()
-
         if move[self.buttons[0]] and self.point.top == 480:
             self.point.top += 60
             self.restart = False
         elif move[self.buttons[1]] and self.point.top == 540:
             self.point.top -= 60
             self.restart = True
-        elif move[self.buttons[2]] or move[self.buttons[3]]:
-            self.running = False
+        elif move[self.buttons[3]]:
+            self.quit = True
             if self.restart:
                 Game().game_loop(30)
         self.screen.blit(self.over_screen, (self.over.x, self.over.y))
@@ -79,11 +77,11 @@ class Game:
         while self.running:
             dt = self.clock.tick(fps)
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+                if event.type == pygame.QUIT or self.quit:
                     return
             if not self.game_over:
                 if self.start:
-                    self.world.update(dt / 300)
+                    self.world.update(dt / 100)
                     self.screen.fill((0, 0, 0))
                     self.world.draw(self.screen)
                     if self.world.game_over:
