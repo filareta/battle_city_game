@@ -5,27 +5,40 @@ from pygame.sprite import Sprite, collide_rect
 from pygame.rect import Rect
 
 from vector import Vec2D, to_pixels, to_coords
-from settings import ENEMIES, TILE_SIZE, SIZE_X, SIZE_Y, SCREEN_SIZE
+from settings import ENEMIES, TILE_SIZE, SIZE_X, SIZE_Y, SCREEN_SIZE, RELOAD_TIME
+
+import math
 
 
 class PlayerWrapper(Sprite):
-    bullet = None
 
     def __init__(self, player):
         super(PlayerWrapper, self).__init__()
         self.player = player
         self.convert(to_pixels)
         self.image = image.load("assets/player{}.png".format(player.turn))
-        x, y = player.coords[0][0], player.coords[0][1]
-        self.rect = Rect((x, y), self.image.get_size())
+
+        self.bullet = None
+        self.reload_time = 1
+
+    def has_hit(self, position):
+        return self.player.coords.x < position.x < self.player.coords.x + TILE_SIZE and \
+            self.player.coords.y < position.y < self.player.coords.y + TILE_SIZE
 
     def convert(self, function):
-        self.player.coords = [function(tile) for tile in self.player.coords]
+        self.player.coords = function(self.player.coords)
 
     def shoot(self):
+        if self.reload_time > 0:
+            return
+
+        self.reload_time = RELOAD_TIME
         self.bullet = BulletSprite(self.player.create_bullet())
 
-    def update(self, alpha, world, walls):
+    def bullet_hit(self):
+        return self.player.bullet_hit()
+
+    def update(self, delta, world, walls):
         if not self.player.dead:
             choice = key.get_pressed()
             if self.player.turn == 1:
@@ -34,7 +47,7 @@ class PlayerWrapper(Sprite):
             else:
                 control = (K_w, K_s, K_a, K_d, K_TAB)
                 sign = 'G'
-            world.clear_content(self.player.coords[0], sign)
+
             direction = Vec2D(0, 0)
             if choice[control[0]]:
                 direction = Vec2D(0, -1)
@@ -48,85 +61,125 @@ class PlayerWrapper(Sprite):
             if choice[control[3]]:
                 direction = Vec2D(1, 0)
                 self.player.angle = -90
-            x, y = direction * TILE_SIZE
-            self.rect.left += x
-            self.rect.top += y
-            for wall in walls:
-                if self.rect.colliderect(wall):
-                    direction = Vec2D(0, 0)
-                    self.rect.left -= x
-                    self.rect.top -= y
+
+            direction = direction * TILE_SIZE * delta
+
+            if world.enemy_hit_tile(self.player.coords + direction):
+                return
+
+            direction = world.validify_direction(self.player.coords, direction)
+
+            # if world.valid_direction(direction, world):
             self.player.move(direction, world.world)
+
+            if not direction.zero():
+                world.update_aim_lines()
+
+            if self.reload_time > 0:
+                self.reload_time -= delta
+
             if choice[control[4]]:
                 self.shoot()
-            world.set_content(sign, self.player.coords)
 
     def draw(self, screen):
         if not self.player.dead:
             origin = self.image.convert_alpha()
             r = transform.rotate(origin, self.player.angle)
-            x, y = self.player.coords[0][0], self.player.coords[0][1]
+            x, y = self.player.coords.x, self.player.coords.y
             screen.blit(r, (x, y))
 
 
 class EnemyWrapper(Sprite):
+
     def __init__(self, enemy, pic):
         super(EnemyWrapper, self).__init__()
         self.enemy = enemy
         self.enemy.turn = pic
         self.convert(to_pixels)
         self.image = image.load("assets/" + ENEMIES[pic])
-        x, y = self.enemy.coords[0][0], self.enemy.coords[0][1]
-        self.rect = Rect((x, y), self.image.get_size())
+
+        self.bullet = None
+        self.reload_time = 0
+
+    def has_hit(self, position):
+        return self.enemy.coords.x < position.x < self.enemy.coords.x + TILE_SIZE and \
+            self.enemy.coords.y < position.y < self.enemy.coords.y + TILE_SIZE
 
     def convert(self, function):
-        self.enemy.coords = [function(tile) for tile in self.enemy.coords]
+        self.enemy.coords = function(self.enemy.coords)
 
-    def bullet(self):
-        if self.enemy.bullet:
-            return BulletSprite(self.enemy.bullet)
+    def shoot(self):
+        if self.reload_time > 0:
+            return
 
-    def update(self, direction, world, index, cls, player):
-        if self.enemy.direction.zero():
-            self.enemy.direction = -direction
-        cls.clear_content(self.enemy.coords[0], 'E')
-        self.enemy.find_neighbours(self.enemy.coords[0], index, world, player)
-        self.enemy.move(world)
-        cls.set_content('E', self.enemy.coords)
-        cls.set_energy('E', self.enemy.coords)
-        x, y = self.enemy.direction * TILE_SIZE
-        self.rect.left += x
-        self.rect.top += y
+        self.reload_time = RELOAD_TIME
+        self.bullet = BulletSprite(self.enemy.create_bullet())
+
+    def bullet_hit(self):
+        return self.enemy.bullet_hit()
+
+    def update(self, delta, world):
+        direction, player_name = world.get_next_direction(self.enemy.coords)
+        direction = direction * delta
+        newpos = self.enemy.coords + direction
+
+        if world.player_hit_tile(newpos) or world.enemy_hit_tile(newpos, except_for=self):
+            return
+
+        if direction.y > 0:
+            self.enemy.angle = 0
+        if direction.y < 0:
+            self.enemy.angle = -180
+        if direction.x > 0:
+            self.enemy.angle = 90
+        if direction.x < 0:
+            self.enemy.angle = -90
+
+        self.enemy.move(world, direction)
+
+        if self.reload_time > 0:
+            self.reload_time -= delta
+
+        if direction.zero():
+            # Look at player
+            player_direction = world.players[player_name].coords - self.enemy.coords
+
+            if abs(player_direction.x) > abs(player_direction.y):
+                if player_direction.x > 0:
+                    self.enemy.angle = 90
+                else:
+                    self.enemy.angle = -90
+            else:
+                if player_direction.y > 0:
+                    self.enemy.angle = 0
+                else:
+                    self.enemy.angle = 180
+
+            self.shoot()
 
     def draw(self, screen):
         origin = self.image.convert_alpha()
         r = transform.rotate(origin, self.enemy.angle)
-        screen.blit(r, (self.enemy.coords[0][0], self.enemy.coords[0][1]))
+        screen.blit(r, (self.enemy.coords.x, self.enemy.coords.y))
 
 
 class BulletSprite(Sprite):
-    active = True
-
     def __init__(self, bullet):
         super(BulletSprite, self).__init__()
         self.bullet = bullet
         self.image = image.load("assets/bullet.png")
-        x, y = to_pixels(self.bullet.pos)
-        self.rect = Rect((x, y), self.image.get_size())
 
-    def update(self, world, alpha):
-        if self.active:
-            self.bullet.flight(world, alpha)
-            x, y = self.bullet.direction * self.bullet.ttl
-            self.rect.left += x
-            self.rect.top += y
-            if self.rect.left < 0 or self.rect.top < 0 or \
-                    self.rect.left > SCREEN_SIZE[0] or \
-                    self.rect.top > SCREEN_SIZE[1]:
-                self.active = False
+    def update(self, world, delta):
+        self.bullet.flight(world, delta)
 
     def draw(self, screen):
-        if self.active:
-            origin = self.image.convert_alpha()
-            rotated = transform.rotate(origin, self.bullet.angle)
-            screen.blit(rotated, (self.rect.left, self.rect.top))
+        origin = self.image.convert_alpha()
+        rotated = transform.rotate(origin, self.bullet.angle)
+        screen.blit(rotated, (self.bullet.pos.x, self.bullet.pos.y))
+
+
+class WallWrapper(Rect):
+    def __init__(self, wall, coords, size):
+        super().__init__(coords, size)
+
+        self.wall = wall

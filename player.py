@@ -1,55 +1,36 @@
 from vector import Vec2D
-from settings import TILE_SIZE, SIZE_X, SIZE_Y
+from settings import TILE_SIZE, SIZE_X, SIZE_Y, PLAYER_HEALTH
 from static_objects import Bullet
 
 
 class Player:
-    coords = []
-    direction = Vec2D(0, 0)
-    angle = 0
-    health = 100
-    dead = False
-
     def __init__(self, coords, turn):
-        self.coords = coords
+        self.angle = 0
+        self.health = PLAYER_HEALTH
+        self.dead = False
+
         self.turn = turn
-
-    def valid_direction(self, direction, world):
-        return self.valid(self.coords[0] + direction, world) and \
-            self.valid(self.coords[-1] + direction, world)
-
-    def valid(self, cell, world):
-        return cell[0] >= 0 and cell[0] < SIZE_X and \
-            cell[1] >= 0 and cell[1] < SIZE_Y and \
-            world[cell[0]][cell[1]].passable()
+        self.coords = coords
 
     def move(self, direction, world):
         if not self.dead:
-            if self.valid_direction(direction, world):
-                self.direction = direction
-                for i, position in enumerate(self.coords):
-                    ind1, ind2 = self.coords[i]
-                    move = position + direction
-                    world[move[0]][move[1]].energy += world[ind1][ind2].energy
-                    self.coords[i] = move
-            else:
-                self.direction = Vec2D(0, 0)
+            self.coords = self.coords + direction
 
     def create_bullet(self):
         if self.angle == 0:
-            start = self.coords[2] + Vec2D(0, -1)
+            start = self.coords + Vec2D(TILE_SIZE/2 - 2, 0)
             return Bullet(start, Vec2D(0, -1), self.angle, "player")
         elif self.angle == -180:
-            start = self.coords[2] + Vec2D(0, 1)
+            start = self.coords + Vec2D(TILE_SIZE/2 - 4, TILE_SIZE - 4)
             return Bullet(start, Vec2D(0, 1), self.angle, "player")
         elif self.angle == 90:
-            start = self.coords[2] + Vec2D(-1, 2)
+            start = self.coords + Vec2D(4, TILE_SIZE/2 - 4)
             return Bullet(start, Vec2D(-1, 0), self.angle, "player")
         elif self.angle == -90:
-            start = self.coords[2] + Vec2D(1, 2)
+            start = self.coords + Vec2D(TILE_SIZE - 8, TILE_SIZE/2 - 4)
             return Bullet(start, Vec2D(1, 0), self.angle, "player")
 
-    def check_health(self, decrease):
-        self.health -= decrease
+    def bullet_hit(self):
+        self.health -= 1
         if self.health <= 0:
             self.dead = True
